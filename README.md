@@ -1,6 +1,6 @@
 # Ricardo Motors
 
-Site oficial: https://ricardo-motors.pages.dev/
+Site oficial: https://ricardomotorsconsultoria.com.br/
 
 Site estático: um `index.html` com o texto, o estilo e o código da página, e as fotos em `img/`.
 Não tem build, banco de dados nem dependências. Qualquer hospedagem de site estático serve.
@@ -35,7 +35,7 @@ A cada alteração enviada para a branch principal, a hospedagem publica sozinha
 ## Publicação (Vercel)
 
 Importar este repositório na Vercel: preset **Other**, sem comando de build, pasta publicada = raiz.
-Domínio: em *Settings > Domains*, adicionar `ricardo-motors.pages.dev` e `www.ricardo-motors.pages.dev` e criar no
+Domínio: em *Settings > Domains*, adicionar `ricardomotorsconsultoria.com.br` e `www.ricardomotorsconsultoria.com.br` e criar no
 Registro.br os registros DNS que a Vercel mostrar.
 
 Feito pela Renderiza em 2026-11-25.

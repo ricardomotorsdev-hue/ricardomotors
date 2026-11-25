@@ -129,13 +129,13 @@ svg.i{width:20px;height:20px;flex:none}
 .serv a{color:var(--tx);font-weight:700;font-size:14.5px;display:inline-flex;gap:6px;align-items:center;margin-top:6px}.serv a svg{width:16px;height:16px;transition:transform .2s}.serv a:hover svg{transform:translateX(3px)}
 /* sobre */
 .sobre{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:clamp(28px,5vw,72px);align-items:center;background:#fff;border-radius:20px;box-shadow:var(--sombra);padding:clamp(20px,3vw,32px)}
-.sobre img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 30%;border-radius:14px}
+.sobre-fotos{position:relative;margin:0 26px 26px 0}.sobre-fotos img{display:block;width:100%;height:auto;object-fit:cover}.sobre-fotos .principal{aspect-ratio:4/5;object-position:28% 50%;border-radius:14px}.sobre-fotos .segunda{position:absolute;right:-26px;bottom:-26px;width:46%;aspect-ratio:3/4;object-position:50% 45%;border-radius:12px;border:5px solid #fff;box-shadow:0 14px 32px -12px rgba(16,16,20,.5)}
 .sobre h2{font-size:clamp(28px,3vw,40px);font-weight:800;letter-spacing:-.03em;margin:10px 0 14px}.sobre p{color:#3a3a3f;margin:0;max-width:540px;font-size:16.5px}
 .fatos{display:flex;gap:clamp(20px,4vw,44px);margin:24px 0;padding:18px 0;border-top:1px solid var(--li);border-bottom:1px solid var(--li)}
 .fatos b{display:block;font-size:24px;font-weight:800;letter-spacing:-.02em}.fatos span{font-size:13px;color:var(--mu)}
 .sobre blockquote{margin:0 0 24px;color:#3a3a3f;font-size:15.5px;font-style:italic;max-width:540px}
 .sobre blockquote small{display:block;font-style:normal;color:var(--mu);margin-top:6px;font-size:13px}
-@media(max-width:760px){.sobre{grid-template-columns:minmax(0,1fr);padding:0;overflow:hidden;gap:0}.sobre img{aspect-ratio:4/3;object-position:50% 18%;border-radius:0}.sobre>div{padding:22px 20px 26px}.fatos{gap:22px}}
+@media(max-width:760px){.sobre{grid-template-columns:minmax(0,1fr);padding:0;overflow:hidden;gap:0}.sobre-fotos{margin:0}.sobre-fotos .principal{aspect-ratio:1/1;object-position:50% 50%;border-radius:0}.sobre-fotos .segunda{right:14px;bottom:14px;width:38%;border-width:4px;border-radius:10px}.sobre>div{padding:22px 20px 26px}.fatos{gap:22px}}
 /* contato */
 .chama{background:var(--preto);color:#fff;border-radius:20px;padding:clamp(28px,5vw,52px);display:flex;align-items:center;justify-content:space-between;gap:20px 40px;flex-wrap:wrap}
 .chama h2{font-size:clamp(26px,3.2vw,38px);font-weight:800}.chama p{margin:8px 0 0;color:#c9c6be;max-width:520px}
@@ -1010,7 +1010,7 @@ dialog::backdrop{background:rgba(11,11,12,.72);backdrop-filter:blur(4px)}
 
 <section class="sec" id="sobre" style="padding-top:0" data-site-secao="sobre">
   <div class="c"><div class="sobre">
-    <img data-site-img="sobre.foto" src="/img/ricardo-neves-no-escritorio-da-ricardo-motors-e58e9667.jpg" alt="Ricardo Neves no escritório da Ricardo Motors" loading="lazy" width="470" height="588">
+    <div class="sobre-fotos"><img class="principal" data-site-img="sobre.foto" src="/img/ricardo-neves-da-rm-consultoria-automotiva-85f6221e.webp" alt="Ricardo Neves, da RM Consultoria Automotiva" loading="lazy" width="900" height="900"><img class="segunda" data-site-img="sobre.foto-2" src="/img/na-garagem-da-rm-consultoria-automotiva-5194a042.webp" alt="Na garagem da RM Consultoria Automotiva" loading="lazy" width="600" height="800"></div>
     <div><span class="k" data-site="sobre.etiqueta">Quem cuida do seu negócio</span><h2 data-site="sobre.titulo">Ricardo Neves</h2>
       <p data-site="sobre.texto">Dez anos no dia a dia de uma revenda e, desde 2020, a própria consultoria. Cada carro passa pela mão dele antes de chegar até você.</p>
       <div class="fatos"><div><b>16 anos</b><span>no mercado</span></div><div><b data-total>15</b><span>carros no estoque</span></div><div><b data-blind>8</b><span>blindados</span></div></div>

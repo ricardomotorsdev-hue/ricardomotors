@@ -1124,8 +1124,8 @@ function grade(){const l=lista();$("#n-res").textContent=l.length;
 }
 document.addEventListener("click",e=>{const b=e.target.closest("[data-abre]");if(b){e.preventDefault();location.hash="carro-"+b.dataset.abre}});
 $("#ordem").onchange=grade;
-const dlg=$("#dlg");let gi=0,gl=[];
-function abrir(id){const c=CARROS.find(x=>x.id===id);if(!c)return;gl=fts(c);gi=0;
+const dlg=$("#dlg");let gi=0,gl=[],glm=[];
+function abrir(id){const c=CARROS.find(x=>x.id===id);if(!c)return;gl=fts(c);glm=ftm(c);gi=0;
  const l=lista(),nav=l.some(x=>x.id===id)?l:CARROS,pos=nav.findIndex(x=>x.id===id);
  const sim=CARROS.filter(x=>x.id!==id).sort((a,b)=>(a.tipo===c.tipo?0:1)-(b.tipo===c.tipo?0:1)||Math.abs(a.preco-c.preco)-Math.abs(b.preco-c.preco)).slice(0,3);
  const ft=[["Ano",c.ano],["Quilometragem",kmf(c.km)],["Câmbio",c.cambio||"Automático"],["Combustível",comb(c)],["Carroceria",c.carroceria||c.tipo],["Cor",c.cor],["Final da placa",c.placa],["Blindado",c.tags.includes("Blindado")?"Sim":""],["IPVA pago",c.ipva?"Sim":""],["Licenciado",c.licenciado?"Sim":""],["Aceita troca",c.troca?"Sim":""],["Revisões na concessionária",c.revisoes?"Sim":""],["Único dono",c.unico?"Sim":""],["Garantia de fábrica",c.garantia?"Sim":""]].filter(x=>x[1]);
@@ -1133,7 +1133,7 @@ function abrir(id){const c=CARROS.find(x=>x.id===id);if(!c)return;gl=fts(c);gi=0
  $("#dt").innerHTML=`<div class="dt-topo"><button class="volta" id="d-volta" aria-label="Voltar ao estoque"><svg class="i"><use href="#esq"/></svg><span>Voltar ao estoque</span></button><span class="pos">${pos+1} de ${nav.length}</span>
  <button class="ib" id="d-ant" aria-label="Carro anterior"><svg class="i"><use href="#esq"/></svg></button><button class="ib" id="d-prox" aria-label="Próximo carro"><svg class="i"><use href="#dir"/></svg></button><button class="ib" id="d-x" aria-label="Fechar"><svg class="i"><use href="#x"/></svg></button></div>
  <div class="gal"><div class="palco"><img class="fundo" id="g-fundo" src="${gl[0]}" alt=""><img id="g-img" src="${gl[0]}" alt="${nome(c)}">${gl.length>1?`<button class="seta a" aria-label="Foto anterior"><svg class="i"><use href="#esq"/></svg></button><button class="seta p" aria-label="Próxima foto"><svg class="i"><use href="#dir"/></svg></button><span class="npos" id="g-n">1 / ${gl.length}</span>`:""}</div>
- ${gl.length>1?`<div class="miniaturas">${gl.map((u,k)=>`<button data-i="${k}" aria-label="Foto ${k+1}" aria-current="${!k}"><img src="${u}" alt="" loading="lazy"></button>`).join("")}</div>`:""}</div>
+ ${gl.length>1?`<div class="miniaturas">${gl.map((u,k)=>`<button data-i="${k}" aria-label="Foto ${k+1}" aria-current="${!k}"><img src="${glm[k]||u}" alt="" loading="lazy"></button>`).join("")}</div>`:""}</div>
  <div class="lado"><div class="caixa"><h3>${nome(c)}</h3><div class="ver">${c.versao}</div>${c.tags.length?`<div class="selos">${selos(c)}</div>`:""}<div class="preco">${brl(c.preco)}</div>${DO_PAINEL?"":`<p class="aviso-carro">O estoque muda todo dia: confirme a disponibilidade pelo WhatsApp.</p>`}
  <a class="bt bt-w" data-wa="${msg(c)}" href="#"><svg class="i"><use href="#wa"/></svg>Tenho interesse</a>
  <div class="duas"><a class="bt bt-d" data-wa="Olá, Ricardo! Quero agendar uma visita para ver o ${nome(c)} ${c.ano}." href="#"><svg class="i"><use href="#cal"/></svg>Agendar visita</a><a class="bt bt-d" data-wa="Olá, Ricardo! Quero simular a troca ou o financiamento do ${nome(c)} ${c.ano}." href="#"><svg class="i"><use href="#troca"/></svg>Troca</a></div></div>

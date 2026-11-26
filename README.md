@@ -38,4 +38,4 @@ Importar este repositório na Vercel: preset **Other**, sem comando de build, pa
 Domínio: em *Settings > Domains*, adicionar `ricardomotorsconsultoria.com.br` e `www.ricardomotorsconsultoria.com.br` e criar no
 Registro.br os registros DNS que a Vercel mostrar.
 
-Feito pela Renderiza em 2026-11-25.
+Feito pela Renderiza em 2026-11-26.

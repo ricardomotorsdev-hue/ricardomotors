@@ -55,7 +55,7 @@ svg.i{width:20px;height:20px;flex:none}
 .capa{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);min-height:clamp(600px,calc(100svh - 68px),840px);background:var(--preto);color:#fff}
 .capa-txt{display:flex;flex-direction:column;justify-content:center;padding:56px clamp(28px,4vw,60px) 48px max(var(--pad),calc((100vw - 1240px)/2 + var(--pad)))}
 .capa h1{font-size:clamp(38px,3.7vw,60px);font-weight:800;letter-spacing:-.035em;line-height:1.02;margin:18px 0 20px}
-.capa h1 .nw{white-space:nowrap}.capa h1 .pt{color:var(--ouro-c)}
+.capa h1 .nw{white-space:nowrap}.capa h1 .pt{color:var(--ouro-c)}.titulo-capa{text-wrap:balance}.titulo-capa .pt[hidden]{display:none}
 .capa p{color:#bdbab2;font-size:clamp(16px,1.25vw,18px);line-height:1.6;max-width:430px;margin:0 0 32px}
 .acoes{display:flex;gap:10px;flex-wrap:wrap}
 .destaques{margin-top:38px;display:grid;gap:2px;max-width:440px}
@@ -588,7 +588,7 @@ dialog::backdrop{background:rgba(11,11,12,.72);backdrop-filter:blur(4px)}
   // ---------- extrair: o conteúdo inicial de um site, no mesmo formato (para a montagem no painel) ----------
   function deTexto(el) {
     return Array.prototype.map.call(el.childNodes, function (n) {
-      return n.nodeName === "EM" ? "*" + n.textContent + "*" : n.textContent;
+      return n.nodeName === "EM" ? "*" + n.textContent + "*" : n.nodeName === "BR" ? " " : n.textContent; // <br> é espaço: "premium<br>e" não vira "premiume"
     }).join("").replace(/\s+/g, " ").trim();
   }
 
@@ -832,10 +832,17 @@ dialog::backdrop{background:rgba(11,11,12,.72);backdrop-filter:blur(4px)}
       });
     };
     if (!previa) { var guardada = lerCache(chave); if (guardada) mostrar(guardada); }
-    var ctrl = typeof global.AbortController === "function" ? new global.AbortController() : null;
-    if (ctrl) setTimeout(function () { ctrl.abort(); }, 10000);
     var url = api + encodeURIComponent(codigo) + (previa ? "/previa?t=" + previa : "");
-    global.fetch(url, { credentials: "omit", cache: previa ? "no-store" : "default", signal: ctrl ? ctrl.signal : undefined })
+    // Como o Estoque: pede sempre que a página abre e de novo quando a pessoa volta à aba (no máximo a cada 3 s); a
+    // rede guarda a resposta por 1 s, então o que foi publicado aparece na próxima vez que o site é aberto ou olhado.
+    var buscando = false, ultimaBusca = 0;
+    var buscar = function () {
+      if (buscando || Date.now() - ultimaBusca < 3000) return;
+      buscando = true; ultimaBusca = Date.now();
+      var ctrl = typeof global.AbortController === "function" ? new global.AbortController() : null;
+      var limite = ctrl ? setTimeout(function () { ctrl.abort(); }, 10000) : null;
+      var fim = function () { buscando = false; if (limite) clearTimeout(limite); };
+      global.fetch(url, { credentials: "omit", cache: previa ? "no-store" : "default", signal: ctrl ? ctrl.signal : undefined })
       .then(function (r) {
         if (r.status === 404) { if (!previa) apagarCache(chave); mostrar(null); return; }
         if (!r.ok) return;
@@ -845,7 +852,15 @@ dialog::backdrop{background:rgba(11,11,12,.72);backdrop-filter:blur(4px)}
           mostrar(c); // mesmo atrasada: a mesma versão não reaplica (assinatura)
         });
       })
-      .catch(function () { /* fora do ar, demorou ou bloqueado: fica a versão que está na tela */ });
+      .catch(function () { /* fora do ar, demorou ou bloqueado: fica a versão que está na tela */ })
+      .then(fim, fim);
+    };
+    buscar();
+    if (!previa && typeof doc.addEventListener === "function") {
+      var deNovo = function () { if (doc.visibilityState !== "hidden") buscar(); };
+      doc.addEventListener("visibilitychange", deNovo);
+      if (typeof global.addEventListener === "function") global.addEventListener("focus", deNovo);
+    }
   }
 
   var api = { ESQUEMA: ESQUEMA, API: API, validar: validar, partes: partes, destino: destino, iniciais: iniciais, aplicar: aplicar, voltar: voltar, extrair: extrair, lerCliente: lerCliente, marcaDe: marcaDe };
@@ -1017,7 +1032,7 @@ dialog::backdrop{background:rgba(11,11,12,.72);backdrop-filter:blur(4px)}
 <section class="capa" aria-label="Capa" data-site-secao="inicio">
   <div class="capa-txt">
     <span class="k" data-site="inicio.etiqueta">Consultoria automotiva · São Paulo</span>
-    <h1 data-site="inicio.titulo"><span class="nw">Carros premium</span><br><span class="nw">e blindados<span class="pt">.</span></span></h1>
+    <h1 class="titulo-capa"><span data-site="inicio.titulo">Carros premium e blindados</span><span class="pt">.</span></h1>
     <p data-site="inicio.texto">Selecionados a dedo, com procedência verificada e negociação direta com o Ricardo.</p>
     <div class="acoes"><a class="bt bt-o" href="#estoque">Ver o estoque<svg class="i"><use href="#seta"/></svg></a><a class="bt bt-l" data-site-botao="inicio.botao" data-whatsapp data-wa="Olá, Ricardo! Vim pelo seu site e quero ajuda para encontrar um carro." href="https://wa.me/5511947882373?text=Ol%C3%A1%2C%20Ricardo!%20Vim%20pelo%20seu%20site%20e%20quero%20ajuda%20para%20encontrar%20um%20carro." target="_blank" rel="noopener"><svg class="i"><use href="#wa"/></svg>WhatsApp</a></div>
     <div class="destaques" id="destaques" role="group" aria-label="Carros em destaque"></div>
@@ -1092,13 +1107,16 @@ const brl=n=>n?"R$ "+n.toLocaleString("pt-BR"):"Sob consulta",kmf=n=>n.toLocaleS
 const nome=c=>`${c.marca} ${c.modelo}`;
 const fts=c=>c.f.map(n=>IMG[n]||n);
 const comb=c=>(c.combustivel=="Gasolina e elétrico"?"Híbrido":c.combustivel)||(/H[ÍI]BRIDO|HYBRID|PHEV/.test(c.versao)?"Híbrido":/DIESEL/.test(c.versao)?"Diesel":/FLEX/.test(c.versao)?"Flex":"Gasolina");
-const msg=c=>`Olá, Ricardo! Vi no seu site o ${nome(c)} ${c.ano}${c.preco?` (${brl(c.preco)})`:""}. Ainda está disponível?`;
+const SITE="https://ricardomotorsconsultoria.com.br";
+const linkDo=c=>SITE+"/#carro-"+c.id;
+const msg=c=>`Olá, Ricardo! Tenho interesse neste carro do seu site:\n*${nome(c)} ${c.ano}*${c.preco?` · ${brl(c.preco)}`:""}\n${linkDo(c)}\nAinda está disponível?`;
 const ftm=c=>c.fm&&c.fm.length?c.fm:fts(c);
 let DO_PAINEL=false;
 const doServico=a=>{if(a.dataset.waDe===undefined)return"";const it=a.closest("[data-site-item]"),t=it&&it.querySelector('[data-site-campo="titulo"]'),n=t?t.textContent.trim():"";return n&&n!==a.dataset.waDe?n:""};
 const ligarWa=(el=document)=>$$("[data-wa]",el).forEach(a=>{if(a.hasAttribute("data-site-botao")&&!a.hasAttribute("data-whatsapp"))return;const s=doServico(a),t=s&&[...a.childNodes].find(x=>x.nodeType===3&&x.nodeValue.trim());if(t)t.nodeValue="Falar com o Ricardo";a.href=wa(s?`Olá, Ricardo! Quero saber mais sobre: ${s}.`:a.dataset.wa,a.hasAttribute("data-wa-geral"));a.target="_blank";a.rel="noopener";a.setAttribute("data-whatsapp","")});
 const ligarIg=()=>{const n=(String((window.DEMO_CLIENT||{}).instagram||"").match(/instagram\.com\/([A-Za-z0-9._]{1,30})/)||[])[1];if(n)$$("a[data-instagram]").forEach(a=>{a.href=`https://www.instagram.com/${n}/`;const t=[...a.childNodes].find(x=>x.nodeType===3&&x.nodeValue.trim().startsWith("@"));if(t)t.nodeValue="@"+n})};
-window.DEMO_RUNTIME={links(){ligarWa();ligarIg()},carrosseis(){},avaliacoes(){}};
+const pontoDoTitulo=()=>{const t=$('[data-site="inicio.titulo"]'),p=$(".titulo-capa .pt");if(t&&p)p.hidden=/[.!?…]\s*$/.test(t.textContent)};
+window.DEMO_RUNTIME={links(){ligarWa();ligarIg()},carrosseis(){pontoDoTitulo()},avaliacoes(){}};
 const FILTROS=[["todos","Todos",()=>true],["Blindado","Blindados",c=>c.tags.includes("Blindado")],["SUV","SUVs",c=>c.tipo==="SUV"],["Sedã","Sedãs",c=>c.tipo==="Sedã"],["Picape","Picape",c=>c.tipo==="Picape"],["Híbrido","Híbridos",c=>c.tags.includes("Híbrido")],["Diesel","Diesel",c=>c.tags.includes("Diesel")],["fipe","Abaixo da FIPE",c=>c.tags.includes("Abaixo da FIPE")],["ate250","Até R$ 250 mil",c=>!!c.preco&&c.preco<=250000]];
 let filtro="todos";
 function chips(){$("#chips").innerHTML=FILTROS.map(([id,t,f])=>{const n=CARROS.filter(f).length;return n?`<button class="chip" data-f="${id}" aria-pressed="${id===filtro}" aria-label="Filtrar: ${t}">${t}<i>${n}</i></button>`:""}).join("")}
@@ -1136,10 +1154,10 @@ function abrir(id){const c=CARROS.find(x=>x.id===id);if(!c)return;gl=fts(c);glm=
  ${gl.length>1?`<div class="miniaturas">${gl.map((u,k)=>`<button data-i="${k}" aria-label="Foto ${k+1}" aria-current="${!k}"><img src="${glm[k]||u}" alt="" loading="lazy"></button>`).join("")}</div>`:""}</div>
  <div class="lado"><div class="caixa"><h3>${nome(c)}</h3><div class="ver">${c.versao}</div>${c.tags.length?`<div class="selos">${selos(c)}</div>`:""}<div class="preco">${brl(c.preco)}</div>${DO_PAINEL?"":`<p class="aviso-carro">O estoque muda todo dia: confirme a disponibilidade pelo WhatsApp.</p>`}
  <a class="bt bt-w" data-wa="${msg(c)}" href="#"><svg class="i"><use href="#wa"/></svg>Tenho interesse</a>
- <div class="duas"><a class="bt bt-d" data-wa="Olá, Ricardo! Quero agendar uma visita para ver o ${nome(c)} ${c.ano}." href="#"><svg class="i"><use href="#cal"/></svg>Agendar visita</a><a class="bt bt-d" data-wa="Olá, Ricardo! Quero simular a troca ou o financiamento do ${nome(c)} ${c.ano}." href="#"><svg class="i"><use href="#troca"/></svg>Troca</a></div></div>
+ <div class="duas"><a class="bt bt-d" data-wa="Olá, Ricardo! Quero agendar uma visita para ver o *${nome(c)} ${c.ano}*:\n${linkDo(c)}" href="#"><svg class="i"><use href="#cal"/></svg>Agendar visita</a><a class="bt bt-d" data-wa="Olá, Ricardo! Quero simular a troca ou o financiamento do *${nome(c)} ${c.ano}*:\n${linkDo(c)}" href="#"><svg class="i"><use href="#troca"/></svg>Troca</a></div></div>
  <dl class="ficha">${ft.map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join("")}</dl>
  ${c.descricao?`<div class="bloco"><h4>Sobre este carro</h4><p>${c.descricao}</p></div>`:""}
- ${c.f.length<2?`<div class="bloco"><a class="bt bt-d" style="width:100%" data-wa="Olá, Ricardo! Pode me mandar mais fotos e um vídeo do ${nome(c)} ${c.ano}?" href="#">Pedir mais fotos e vídeo</a></div>`:""}
+ ${c.f.length<2?`<div class="bloco"><a class="bt bt-d" style="width:100%" data-wa="Olá, Ricardo! Pode me mandar mais fotos e um vídeo do *${nome(c)} ${c.ano}*?\n${linkDo(c)}" href="#">Pedir mais fotos e vídeo</a></div>`:""}
  ${ops.length?`<div class="bloco"><h4>Itens do veículo</h4><ul class="itens">${ops.slice(0,14).map(o=>`<li>${o}</li>`).join("")}</ul>${ops.length>14?`<button class="mais" id="mais">Ver os ${ops.length} itens</button>`:""}</div>`:""}
  <div class="bloco"><h4>Você também pode gostar</h4><div class="sim">${sim.map(x=>`<button data-abre="${x.id}" aria-label="Ver ${nome(x)}"><img src="${ftm(x)[0]}" alt="" loading="lazy"><span>${nome(x)}<small>${brl(x.preco)}</small></span></button>`).join("")}</div></div></div>
  <div class="fixo"><div><small>${nome(c)}</small><b>${brl(c.preco)}</b></div><a class="bt bt-w" data-wa="${msg(c)}" href="#"><svg class="i"><use href="#wa"/></svg>Tenho interesse</a></div>`;
@@ -1193,7 +1211,7 @@ window.rzEstoque=itens=>{
  CARROS.splice(0,CARROS.length,...l);$$("[data-estoque-aviso]").forEach(x=>x.hidden=DO_PAINEL);ordensDePreco();
  chips();grade();contagens();
  const comFoto=l.filter(c=>c.f.length),capa=itens?[...comFoto.filter(c=>c.destaque),...comFoto.filter(c=>!c.destaque)].slice(0,4).map(c=>({c,src:c.f[0],mini:(c.fm||[])[0]})):CAPA0;
- montarCapa(capa.length?capa:CAPA0);if(dlg.open)rota()};
+ montarCapa(capa.length?capa:CAPA0);rota()}; // #carro-<id> do painel: abre quando a lista chega
 montarCapa(HL);ordensDePreco();
 chips();grade();ligarWa();rota();
 </script>
